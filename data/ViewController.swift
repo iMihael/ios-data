@@ -8,6 +8,7 @@
 
 import UIKit
 import CoreData
+import Foundation
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
@@ -16,18 +17,15 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     @IBOutlet var deleteButton: UIButton!
     @IBOutlet var table: UITableView!
     
-    var data: [String] = ["Plums", "Apples", "Pears", "Bananas"]
-    var appDel:AppDelegate = (UIApplication.sharedApplication().delegate as AppDelegate)
-    var context:NSManagedObjectContext = NSManagedObjectContext()
+    var data: [String] = [String]()
     
     @IBAction func addAction() {
-        var newFruit = NSEntityDescription.insertNewObjectForEntityForName("Fruits", inManagedObjectContext: self.context) as NSManagedObject
-        newFruit.setValue(textField.text, forKey: "name")
-        newFruit.setValue(NSDate(), forKey: "created_at")
-        
-        context.save(nil)
-        println(newFruit)
 
+        var f: Fruit = Fruit.newInstance()
+        f.name = textField.text
+        f.created_at = NSDate()
+        Fruit.save()
+        
         data.append(String(textField.text))
         table.reloadData()
         textField.text = ""
@@ -51,21 +49,14 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.context = appDel.managedObjectContext!
-        
-        var request = NSFetchRequest(entityName: "Fruits")
-        request.returnsObjectsAsFaults = false
-        
-        var results:NSArray = context.executeFetchRequest(request, error: nil)!
-        if results.count > 0 {
-            data = []
-            for res in results {
-                println(res)
-                data.append(String(res.name))
-            }
+
+        var fruits = Fruit.findAll()
+        for f in fruits {
+            self.data.append(f.name)
         }
-        println(data)
+        
         table.reloadData()
+
     }
 
     override func didReceiveMemoryWarning() {
